@@ -187,7 +187,7 @@ Para terminar, la p de “pruebas”, la st de “este” y la s final de la úl
   automática conseguida para el fichero grabado al efecto. 
 
   Las etiquetas manuales son las de arriba y las automáticas son las de abajo.
-  ![Captura Final](img/image.png)
+  ![Captura Final](img/waves2.png)
 
 - Explique, si existen. las discrepancias entre el etiquetado manual y la detección automática.
 
