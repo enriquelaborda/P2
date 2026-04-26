@@ -151,7 +151,7 @@ Ejercicios
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
   El orden de los datos son: etiquetado manual, potencia, ZCR y señal temporal.
-  ![Captura de Wavesurfer](img/wavesurfer.png)
+  ![Captura de Wavesurfer](img/waves1.png)
 
 - A la vista de la gráfica, indique qué valores considera adecuados para las magnitudes siguientes:
 
