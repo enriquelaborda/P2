@@ -150,14 +150,32 @@ Ejercicios
   continuación, una captura de `wavesurfer` en la que se vea con claridad la señal temporal, el contorno de
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
+  El orden de los datos son: etiquetado manual, potencia, ZCR y señal temporal.
+  ![Captura de Wavesurfer](img/wavesurfer.png)
+
 - A la vista de la gráfica, indique qué valores considera adecuados para las magnitudes siguientes:
 
   * Incremento del nivel potencia en dB, respecto al nivel correspondiente al silencio inicial, para
     estar seguros de que un segmento de señal se corresponde con voz.
+    
+    > Al ver cómo se comportaba la gráfica, nos dimos cuenta de que sumarle unos 15 dB al nivel del ruido de fondo (que llamamos `alpha1` en el código) es más que suficiente para que el programa detecte la voz sin que los pequeños ruidos de fondo nos estropeen la medida.
+
 
   * Duración mínima razonable de los segmentos de voz y silencio.
 
+    > Para no que no se nos colaran chasquidos cortos o respiraciones considerándolos voz, pusimos el mínimo de un bloque de voz en **30 milisegundos** (unas 3 tramas). Luego, para no partir las palabras a la mitad cada vez que hay una consonante o una pausa corta, dejamos que la potencia caiga durante por lo menos 200 milisegundos  antes de decidir que es un silencio de verdad.
+
+
   * ¿Es capaz de sacar alguna conclusión a partir de la evolución de la tasa de cruces por cero?
+  
+La ZCR puede ser una herramienta muy fiable para detectar cuándo aparecen los sonidos sordos en la señal. En nuestro caso, hemos analizado las frases: “Somos Bruno Barahona y Enrique Laborda. Estamos haciendo el primer paso de la práctica 2 de PAV. Luego, haremos pruebas con este audio.”
+
+Si nos fijamos en la tercera gráfica, la tasa de cruces por cero da picos puntuales que coinciden justo con las consonantes sordas de las frases. El primer subidón claro es la s inicial de “Somos”, que dispara la ZCR enseguida. Después de eso, el valor baja en los nombres, pero vuelve a asomar un pico más discreto con la k de “Enrique”.
+
+También vemos que la ZCR se eleva bastante en la parte de “Estamos” (por la s) y sobre todo en el bloque de “paso de la práctica”, donde la p inicial y la k de “práctica” dejan una marca súper clara. Un poco más adelante, la p de “PAV” vuelve a hacer que la gráfica suba de golpe.
+
+Para terminar, la p de “pruebas”, la st de “este” y la s final de la última palabra se ven perfectamente como pequeñas elevaciones al final de la señal.
+
 
 
 ### Desarrollo del detector de actividad vocal
@@ -168,11 +186,23 @@ Ejercicios
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
   automática conseguida para el fichero grabado al efecto. 
 
+  Las etiquetas manuales son las de arriba y las automáticas son las de abajo.
+  ![Captura Final](img/image.png)
+
 - Explique, si existen. las discrepancias entre el etiquetado manual y la detección automática.
+
+  > Hay alguna diferencia de milisegundos en los bordes de algunas sílabas si comparamos el etiquetado a mano con el automático. Pasa básicamente porque nuestro código de VAD tiene un cierto "hangover" esperando algunas tramas extras para confirmar que es silencio, así que alarga un poco los finales de la palabra por si acaso, cosa que nosotros etiquetando a ojo no hacemos. No obstante, estamos bastante satisfechos con el resultado de la comparación entre ambas detecciones. En parte, también, confirma que el valor asignado a alpha1 es válido y correcto, ya que hace una detección bastante precisa.
 
 - Evalúe los resultados sobre la base de datos `db.v4` con el script `vad_evaluation.pl` e inserte a 
   continuación las tasas de sensibilidad (*recall*) y precisión para el conjunto de la base de datos (sólo
   el resumen).
+  
+  ```text
+  **************** Summary ****************
+  Recall V:558.27/590.75 94.50%   Precision V:558.27/635.74 87.81%   F-score V (2)  : 93.08%
+  Recall S:298.78/376.26 79.41%   Precision S:298.78/331.26 90.19%   F-score S (1/2): 87.81%
+  ===> TOTAL: 90.408%
+  ```
 
 
 ### Trabajos de ampliación
@@ -182,11 +212,20 @@ Ejercicios
 - Si ha desarrollado el algoritmo para la cancelación de los segmentos de silencio, inserte una gráfica en
   la que se vea con claridad la señal antes y después de la cancelación (puede que `wavesurfer` no sea la
   mejor opción para esto, ya que no es capaz de visualizar varias señales al mismo tiempo).
+  
+  > En cuanto detectamos que la trama actual es puramente considerada silencio o indefinida, en lugar de copiar la muestra original, insertamos el `buffer_zeros` directamente en el archivo de salida.
+
+  En la imagen, la señal de arriba es la original y la de abajo es la cancelada.
+  ![Cancelación de Ruido](img/cancelacion.png)
 
 #### Gestión de las opciones del programa usando `docopt_c`
 
 - Si ha usado `docopt_c` para realizar la gestión de las opciones y argumentos del programa `vad`, inserte
   una captura de pantalla en la que se vea el mensaje de ayuda del programa.
+  
+  > Al analizar el código base de la práctica, comprobamos que ya venía integrada la cabecera `vad_docopt.h`. Esta librería gestiona correctamente la validación de los argumentos de entrada: si se introduce una opción incorrecta o faltan parámetros requeridos, interrumpe la ejecución e imprime en pantalla el mensaje de ayuda con la sintaxis válida.
+  
+  ![Mensaje Docopt](img/docopt.png)
 
 
 ### Contribuciones adicionales y/o comentarios acerca de la práctica
@@ -194,9 +233,11 @@ Ejercicios
 - Indique a continuación si ha realizado algún tipo de aportación suplementaria (algoritmos de detección o 
   parámetros alternativos, etc.).
 
+  > Consideramos que el resultado final es muy satisfactorio gracias a la sustitución del umbral estático original por un sistema de calibración dinámica. El sistema está programado para calcular la potencia real del ruido de fondo (`p0`) durante las primeras 10 tramas iniciales. Además, la adición de los estados puente `ST_MAYBE_VOICE` y `ST_MAYBE_SILENCE` ha sido vital para filtrar picos breves de ruido y evitar que caídas momentáneas de potencia dividan erróneamente una misma palabra en dos.
+
 - Si lo desea, puede realizar también algún comentario acerca de la realización de la práctica que
   considere de interés de cara a su evaluación.
-
+Tras múltiples intentos de mejorar el porcentaje adjuntado arriba, consideramos que hemos llegado a un resultado satisfactorio para la práctica. 
 
 ### Antes de entregar la práctica
 

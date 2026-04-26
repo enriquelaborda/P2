@@ -1,7 +1,5 @@
 #!/bin/bash
 
-alpha0=${1:-5}
-
 # Be sure that this file has execution permissions:
 # Use the nautilus explorer or chmod +x run_vad.sh
 
@@ -10,9 +8,9 @@ alpha0=${1:-5}
 set -o pipefail
 
 # Write here the name and path of your program and database
-DIR_P2=$HOME/PAV/P2
+DIR_P2=.
 DB=$DIR_P2/db.v4
-CMD="$DIR_P2/bin/vad -0 $alpha0"
+CMD=$DIR_P2/bin/vad
 
 for filewav in $DB/*/*wav; do
 #    echo
